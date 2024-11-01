@@ -6,4 +6,6 @@ brew services start postgresql
 
 brew services stop postgresql
 
-npm start
+Запуск:
+
+node src/server.js

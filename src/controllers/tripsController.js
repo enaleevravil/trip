@@ -1,5 +1,5 @@
-// src/controllers/tripsController.js
 const client = require('../config/db');
+const path = require('path');
 
 exports.addTrip = async (req, res) => {
     const { from_location, to_location, travel_date, transport } = req.body;
@@ -16,25 +16,15 @@ exports.addTrip = async (req, res) => {
     }
 };
 
+exports.getTripsPage = (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/views/tripsList.html'));
+};
+
 exports.getAllTrips = async (req, res) => {
     try {
         const result = await client.query('SELECT * FROM trips');
         const trips = result.rows;
-        res.send(`
-            <h1>Список всех поездок</h1>
-            <ul>
-                ${trips.map(trip => `
-                    <li>
-                        <strong>ID:</strong> ${trip.id} <br>
-                        <strong>Откуда:</strong> ${trip.from_location} <br>
-                        <strong>Куда:</strong> ${trip.to_location} <br>
-                        <strong>Дата поездки:</strong> ${trip.travel_date} <br>
-                        <strong>Транспорт:</strong> ${trip.transport} <br>
-                    </li>
-                `).join('')}
-            </ul>
-            <a href="/">Назад к форме добавления поездки</a>
-        `);
+        res.json(trips);
     } catch (err) {
         console.error(err);
         res.status(500).send('Ошибка при получении поездок');
