@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Посещенные страны</title>
+
+    <!-- Подключаем jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- Подключаем Select2 CSS и JS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+    <!-- Стиль страницы -->
+    <style>
+        /* Устанавливаем основные стили для всей страницы */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body, html {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 14px;
+            color: #555;
+            text-align: left;
+        }
+
+        input[type="text"], input[type="date"], select, button {
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .select2-container {
+            width: 100% !important;
+        }
+
+        h2 {
+            color: #333;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+        }
+
+        ul li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            color: #333;
+        }
+
+        ul li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Добавить поездку</h1>
+    <form id="addCountryForm">
+        <label for="country_id">Страна:</label>
+        <select id="country_id" required></select>
+
+        <label for="visit_date">Дата посещения:</label>
+        <input type="date" id="visit_date">
+
+        <label for="city">Города:</label>
+        <input type="text" id="city" placeholder="Города">
+
+        <button type="submit">Добавить</button>
+    </form>
+
+    <h2>Список поездок</h2>
+    <ul id="countriesList"></ul>
+</div>
+
+<script>
+    // Инициализация Select2
+    $(document).ready(function() {
+        $('#country_id').select2({
+            placeholder: "Выберите страну",
+            allowClear: true
+        });
+    });
+
+    // Загрузка списка стран
+    async function loadCountryList() {
+        const response = await fetch('/api/country-list');
+        const countries = await response.json();
+        const countrySelect = document.getElementById('country_id');
+        countrySelect.innerHTML = countries.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        $('#country_id').trigger('change');
+    }
+
+    // Загрузка списка посещений
+    async function loadCountries() {
+        const response = await fetch('/api/countries');
+        const countries = await response.json();
+        const list = document.getElementById('countriesList');
+        list.innerHTML = countries.map(c => `<li>${c.country_name} - ${c.visit_date || ''} (${c.city || ''})</li>`).join('');
+    }
+
+    document.getElementById('addCountryForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const country_id = document.getElementById('country_id').value;
+        const visit_date = document.getElementById('visit_date').value;
+        const city = document.getElementById('city').value;
+
+        await fetch('/api/countries', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ country_id, visit_date, city })
+        });
+
+        loadCountries();  // Обновляем список посещений
+    });
+
+    loadCountryList();  // Загружаем список стран при загрузке страницы
+    loadCountries();    // Загружаем список посещений при загрузке страницы
+</script>
+
+</body>
+</html>
+
+
+
+
+

@@ -1,13 +1,12 @@
-// src/config/db.js
 const { Client } = require('pg');
-require('dotenv').config(); // Загружаем переменные окружения из .env
+require('dotenv').config();
 
 const client = new Client({
-    user: process.env.DB_USER || 'postgres',
-    host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'travel_planner',
-    password: process.env.DB_PASSWORD || '123123', // Используйте переменную окружения
-    port: process.env.DB_PORT || 5432,
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT,
 });
 
 client.connect()
