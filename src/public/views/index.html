@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Посещенные страны</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Добавлено для адаптивности -->
 
     <!-- Подключаем jQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -31,8 +32,8 @@
 
         .container {
             width: 100%;
-            max-width: 500px;
-            margin: 20px;
+            max-width: 500px; /* Ограничиваем максимальную ширину */
+            margin: 10px; /* Уменьшаем отступы */
             padding: 20px;
             background-color: #fff;
             border-radius: 8px;
@@ -50,6 +51,10 @@
             flex-direction: column;
             gap: 15px;
             margin-bottom: 20px;
+            border: 1px solid #ccc; /* Добавляем границу для визуального отделения */
+            padding: 20px; /* Отступы внутри формы */
+            border-radius: 5px; /* Закругляем углы формы */
+            background-color: #f9f9f9; /* Цвет фона для формы */
         }
 
         label {
@@ -89,10 +94,23 @@
             text-align: center;
         }
 
+        /* Стили для списка посещений */
+        .countries-list {
+            max-width: 100%; /* Устанавливаем максимальную ширину на 100% */
+            overflow-y: auto; /* Добавляем прокрутку, если список длинный */
+            max-height: 300px; /* Максимальная высота списка */
+            margin-top: 20px; /* Отступ сверху */
+            border: 1px solid #ccc; /* Граница для списка */
+            border-radius: 5px; /* Закругление углов */
+            background-color: #fff; /* Цвет фона для списка */
+            padding: 10px; /* Отступы внутри списка */
+            text-align: left; /* Текст слева */
+        }
+
         ul {
             list-style: none;
             padding: 0;
-            text-align: left;
+            margin: 0; /* Убираем отступы для списка */
         }
 
         ul li {
@@ -104,6 +122,26 @@
         ul li:last-child {
             border-bottom: none;
         }
+
+        /* Медиа-запрос для мобильных устройств */
+        @media (max-width: 600px) {
+            .container {
+                margin: 5px; /* Уменьшаем отступы для мобильных */
+                padding: 15px; /* Уменьшаем отступы внутри контейнера */
+            }
+
+            form {
+                padding: 15px; /* Уменьшаем отступы внутри формы */
+            }
+
+            .countries-list {
+                max-height: 250px; /* Уменьшаем максимальную высоту списка для мобильных */
+            }
+
+            h2 {
+                margin-top: 20px; /* Уменьшаем отступ сверху для заголовка списка */
+            }
+        }
     </style>
 </head>
 <body>
@@ -114,8 +152,11 @@
         <label for="country_id">Страна:</label>
         <select id="country_id" required></select>
 
-        <label for="visit_date">Дата посещения:</label>
-        <input type="date" id="visit_date">
+        <label for="visit_date">Дата начала поездки:</label>
+        <input type="date" id="visit_date" required>
+
+        <label for="end_date">Дата окончания поездки:</label>
+        <input type="date" id="end_date" required>
 
         <label for="city">Города:</label>
         <input type="text" id="city" placeholder="Города">
@@ -124,7 +165,9 @@
     </form>
 
     <h2>Список поездок</h2>
-    <ul id="countriesList"></ul>
+    <div class="countries-list">
+        <ul id="countriesList"></ul>
+    </div>
 </div>
 
 <script>
@@ -133,6 +176,13 @@
         $('#country_id').select2({
             placeholder: "Выберите страну",
             allowClear: true
+        });
+
+        // Устанавливаем минимальную дату окончания поездки
+        $('#visit_date').on('change', function() {
+            const startDate = $(this).val();
+            $('#end_date').attr('min', startDate); // Устанавливаем минимальную дату окончания
+            $('#end_date').val(''); // Сбрасываем дату окончания, если она раньше
         });
     });
 
@@ -150,19 +200,36 @@
         const response = await fetch('/api/countries');
         const countries = await response.json();
         const list = document.getElementById('countriesList');
-        list.innerHTML = countries.map(c => `<li>${c.country_name} - ${c.visit_date || ''} (${c.city || ''})</li>`).join('');
+
+        // Функция для форматирования даты в формат YYYY-MM-DD
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toISOString().split('T')[0]; // Получаем только дату в формате YYYY-MM-DD
+        }
+
+        list.innerHTML = countries.map(c =>
+            `<li>${c.country_name} - ${formatDate(c.visit_date)} до ${formatDate(c.end_date)} (${c.city || ''})</li>`
+        ).join('');
+
     }
 
     document.getElementById('addCountryForm').addEventListener('submit', async function (e) {
         e.preventDefault();
         const country_id = document.getElementById('country_id').value;
         const visit_date = document.getElementById('visit_date').value;
+        const end_date = document.getElementById('end_date').value; // Получаем значение даты окончания
         const city = document.getElementById('city').value;
+
+        // Проверка, что дата окончания не раньше даты начала
+        if (new Date(end_date) < new Date(visit_date)) {
+            alert("Дата окончания поездки не может быть раньше даты начала!");
+            return;
+        }
 
         await fetch('/api/countries', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ country_id, visit_date, city })
+            body: JSON.stringify({ country_id, visit_date, end_date, city })
         });
 
         loadCountries();  // Обновляем список посещений
@@ -174,6 +241,7 @@
 
 </body>
 </html>
+
 
 
 

@@ -2,7 +2,7 @@ const client = require('../config/db');
 
 exports.getAllCountries = async (req, res) => {
     try {
-        const result = await client.query('SELECT visited_countries.id, countries.name AS country_name, visit_date, city FROM visited_countries JOIN countries ON visited_countries.country_id = countries.id');
+        const result = await client.query('SELECT visited_countries.id, countries.name AS country_name, visit_date, end_date, city FROM visited_countries JOIN countries ON visited_countries.country_id = countries.id');
         res.json(result.rows);
     } catch (err) {
         console.error(err);
@@ -11,12 +11,12 @@ exports.getAllCountries = async (req, res) => {
 };
 
 exports.addVisitedCountry = async (req, res) => {
-    const { country_id, visit_date, city } = req.body;
+    const { country_id, visit_date, end_date, city } = req.body;
 
     try {
         await client.query(
-            'INSERT INTO visited_countries (country_id, visit_date, city) VALUES ($1, $2, $3)',
-            [country_id, visit_date, city]
+            'INSERT INTO visited_countries (country_id, visit_date, end_date, city) VALUES ($1, $2, $3, $4)',
+            [country_id, visit_date, end_date, city]
         );
         res.send('Посещение добавлено!');
     } catch (err) {
