@@ -353,9 +353,21 @@
     });
 
     async function deleteTrip(id) {
-        console.log(`Удаляем поездку с ID: ${id}`);
-        // Реализация функции удаления будет позже
+        try {
+            const response = await fetch(`/api/countries/${id}`, {
+                method: 'DELETE',
+            });
+            if (response.ok) {
+                alert("Поездка успешно удалена!");
+                loadCountries(); // Обновляем список поездок после удаления
+            } else {
+                alert("Не удалось удалить поездку.");
+            }
+        } catch (error) {
+            console.error("Ошибка при удалении поездки:", error);
+        }
     }
+
 
     loadCountryList();
     loadCountries();

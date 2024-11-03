@@ -40,3 +40,23 @@ exports.getCountryList = async (req, res) => {
         res.status(500).send('Ошибка при получении списка стран');
     }
 };
+
+// Функция для удаления поездки по ее id
+exports.deleteVisitedCountry = async (req, res) => {
+    const { id } = req.params; // Получаем id из параметров URL
+
+    try {
+        // Выполняем запрос на удаление поездки из таблицы visited_countries по id
+        const result = await client.query('DELETE FROM visited_countries WHERE id = $1', [id]);
+
+        if (result.rowCount === 0) {
+            // Если не удалось найти запись для удаления
+            res.status(404).send('Поездка не найдена');
+        } else {
+            res.send('Поездка успешно удалена');
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Ошибка при удалении поездки');
+    }
+};
