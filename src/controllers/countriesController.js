@@ -2,7 +2,12 @@ const client = require('../config/db');
 
 exports.getAllCountries = async (req, res) => {
     try {
-        const result = await client.query('SELECT visited_countries.id, countries.name AS country_name, visit_date, end_date, city FROM visited_countries JOIN countries ON visited_countries.country_id = countries.id');
+        const result = await client.query(`
+            SELECT visited_countries.id, countries.name AS country_name, visit_date, end_date, city 
+            FROM visited_countries 
+            JOIN countries ON visited_countries.country_id = countries.id 
+            ORDER BY visit_date DESC
+            `);
         res.json(result.rows);
     } catch (err) {
         console.error(err);

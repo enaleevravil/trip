@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Посещенные страны</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Добавлено для адаптивности -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Подключаем jQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -12,9 +12,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
-    <!-- Стиль страницы -->
+    <!-- Стили страницы -->
     <style>
-        /* Устанавливаем основные стили для всей страницы */
         * {
             margin: 0;
             padding: 0;
@@ -30,15 +29,17 @@
             background-color: #f0f2f5;
         }
 
+        /* Увеличиваем ширину контейнера на десктопах */
         .container {
             width: 100%;
-            max-width: 500px; /* Ограничиваем максимальную ширину */
-            margin: 10px; /* Уменьшаем отступы */
+            max-width: 600px; /* Увеличили ширину на 100px */
+            margin: 10px;
             padding: 20px;
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             text-align: center;
+            overflow: hidden; /* Чтобы содержимое не вылезало */
         }
 
         h1 {
@@ -46,15 +47,64 @@
             color: #333;
         }
 
+        .add-trip-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .add-trip-button:hover {
+            background-color: #45a049;
+        }
+
+        /* Стили для модального окна */
+        .modal {
+            display: none; /* Скрыто по умолчанию */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Включаем прокрутку если нужно */
+            background-color: rgba(0, 0, 0, 0.4); /* Черный фон с прозрачностью */
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% сверху и снизу, центрируем */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Ширина модального окна */
+            max-width: 500px; /* Максимальная ширина */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
         form {
             display: flex;
             flex-direction: column;
             gap: 15px;
             margin-bottom: 20px;
-            border: 1px solid #ccc; /* Добавляем границу для визуального отделения */
-            padding: 20px; /* Отступы внутри формы */
-            border-radius: 5px; /* Закругляем углы формы */
-            background-color: #f9f9f9; /* Цвет фона для формы */
         }
 
         label {
@@ -94,52 +144,91 @@
             text-align: center;
         }
 
-        /* Стили для списка посещений */
+        /* Стили для списка поездок в виде карточек */
         .countries-list {
-            max-width: 100%; /* Устанавливаем максимальную ширину на 100% */
-            overflow-y: auto; /* Добавляем прокрутку, если список длинный */
-            max-height: 300px; /* Максимальная высота списка */
-            margin-top: 20px; /* Отступ сверху */
-            border: 1px solid #ccc; /* Граница для списка */
-            border-radius: 5px; /* Закругление углов */
-            background-color: #fff; /* Цвет фона для списка */
-            padding: 10px; /* Отступы внутри списка */
-            text-align: left; /* Текст слева */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 600px; /* Увеличиваем максимальную высоту списка поездок */
+            overflow-y: auto; /* Добавляем прокрутку */
+            padding-right: 10px;
         }
 
-        ul {
-            list-style: none;
-            padding: 0;
-            margin: 0; /* Убираем отступы для списка */
+        .trip-card {
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex; /* Для выравнивания кнопки удаления */
+            justify-content: space-between; /* Выравниваем элементы */
+            align-items: center; /* Вертикально центрируем */
         }
 
-        ul li {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
+        .trip-card-content {
+            flex: 1; /* Чтобы занимало оставшееся пространство */
+            text-align: left; /* Выравнивание текста влево */
+        }
+
+        .trip-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            width: 100%; /* Занимает всю ширину родителя */
+        }
+
+        .country-name {
+            font-weight: bold;
+            font-size: 16px;
             color: #333;
         }
 
-        ul li:last-child {
-            border-bottom: none;
+        .trip-date {
+            font-size: 14px;
+            color: #777;
+        }
+
+        .trip-cities {
+            font-size: 14px;
+            color: #555;
+            margin-top: 5px;
+            text-align: left;
+        }
+
+        /* Стиль для кнопки удаления */
+        .delete-button {
+            background: none;
+            border: none;
+            font-size: 18px; /* Уменьшаем размер кнопки */
+            color: #aaa;
+            cursor: pointer;
+            transition: color 0.3s;
+            width: 30px; /* Ширина кнопки */
+            height: 30px; /* Высота кнопки */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .delete-button:hover {
+            color: red; /* Кнопка становится красной при наведении */
         }
 
         /* Медиа-запрос для мобильных устройств */
         @media (max-width: 600px) {
             .container {
-                margin: 5px; /* Уменьшаем отступы для мобильных */
-                padding: 15px; /* Уменьшаем отступы внутри контейнера */
+                margin: 5px;
+                padding: 15px;
+                max-width: 100%; /* Контейнер адаптируется под экран */
             }
 
-            form {
-                padding: 15px; /* Уменьшаем отступы внутри формы */
+            .trip-card {
+                padding: 10px;
             }
 
             .countries-list {
-                max-height: 250px; /* Уменьшаем максимальную высоту списка для мобильных */
-            }
-
-            h2 {
-                margin-top: 20px; /* Уменьшаем отступ сверху для заголовка списка */
+                max-height: 300px; /* Уменьшаем высоту списка на мобильных */
             }
         }
     </style>
@@ -147,46 +236,65 @@
 <body>
 
 <div class="container">
-    <h1>Добавить поездку</h1>
-    <form id="addCountryForm">
-        <label for="country_id">Страна:</label>
-        <select id="country_id" required></select>
-
-        <label for="visit_date">Дата начала поездки:</label>
-        <input type="date" id="visit_date" required>
-
-        <label for="end_date">Дата окончания поездки:</label>
-        <input type="date" id="end_date" required>
-
-        <label for="city">Города:</label>
-        <input type="text" id="city" placeholder="Города">
-
-        <button type="submit">Добавить</button>
-    </form>
+    <button class="add-trip-button" id="addTripBtn">Добавить поездку</button>
 
     <h2>Список поездок</h2>
-    <div class="countries-list">
-        <ul id="countriesList"></ul>
+    <div class="countries-list" id="countriesList"></div>
+</div>
+
+<!-- Модальное окно для добавления поездки -->
+<div class="modal" id="addTripModal">
+    <div class="modal-content">
+        <span class="close" id="closeModal">&times;</span>
+        <h1>Добавить поездку</h1>
+        <form id="addCountryForm">
+            <label for="country_id">Страна:</label>
+            <select id="country_id" required></select>
+
+            <label for="visit_date">Дата начала поездки:</label>
+            <input type="date" id="visit_date" required>
+
+            <label for="end_date">Дата окончания поездки:</label>
+            <input type="date" id="end_date" required>
+
+            <label for="city">Города:</label>
+            <input type="text" id="city" placeholder="Город1, Город2" required>
+
+            <button type="submit">Добавить</button>
+        </form>
     </div>
 </div>
 
 <script>
-    // Инициализация Select2
     $(document).ready(function() {
         $('#country_id').select2({
             placeholder: "Выберите страну",
             allowClear: true
         });
 
-        // Устанавливаем минимальную дату окончания поездки
         $('#visit_date').on('change', function() {
             const startDate = $(this).val();
-            $('#end_date').attr('min', startDate); // Устанавливаем минимальную дату окончания
-            $('#end_date').val(''); // Сбрасываем дату окончания, если она раньше
+            $('#end_date').attr('min', startDate);
+            $('#end_date').val('');
+        });
+
+        // Открытие модального окна
+        $('#addTripBtn').on('click', function() {
+            $('#addTripModal').fadeIn();
+        });
+
+        // Закрытие модального окна
+        $('#closeModal').on('click', function() {
+            $('#addTripModal').fadeOut();
+        });
+
+        $(document).on('click', function(event) {
+            if ($(event.target).is('#addTripModal')) {
+                $('#addTripModal').fadeOut();
+            }
         });
     });
 
-    // Загрузка списка стран
     async function loadCountryList() {
         const response = await fetch('/api/country-list');
         const countries = await response.json();
@@ -195,32 +303,39 @@
         $('#country_id').trigger('change');
     }
 
-    // Загрузка списка посещений
     async function loadCountries() {
         const response = await fetch('/api/countries');
         const countries = await response.json();
         const list = document.getElementById('countriesList');
 
-        // Функция для форматирования даты в формат YYYY-MM-DD
         function formatDate(dateString) {
             const date = new Date(dateString);
-            return date.toISOString().split('T')[0]; // Получаем только дату в формате YYYY-MM-DD
+            return date.toISOString().split('T')[0];
         }
 
-        list.innerHTML = countries.map(c =>
-            `<li>${c.country_name} - ${formatDate(c.visit_date)} до ${formatDate(c.end_date)} (${c.city || ''})</li>`
-        ).join('');
-
+        list.innerHTML = countries.map(c => `
+            <div class="trip-card">
+                <div class="trip-card-content">
+                    <div class="trip-card-header">
+                        <span class="country-name">${c.country_name}</span>
+                        <span class="trip-date">${formatDate(c.visit_date)} - ${formatDate(c.end_date)}</span>
+                    </div>
+                    <div class="trip-cities">Города: ${c.city || 'Города не указаны'}</div>
+                </div>
+                <div class="delete-button-container">
+                    <button class="delete-button" onclick="deleteTrip(${c.id})">&times;</button>
+                </div>
+            </div>
+        `).join('');
     }
 
     document.getElementById('addCountryForm').addEventListener('submit', async function (e) {
         e.preventDefault();
         const country_id = document.getElementById('country_id').value;
         const visit_date = document.getElementById('visit_date').value;
-        const end_date = document.getElementById('end_date').value; // Получаем значение даты окончания
+        const end_date = document.getElementById('end_date').value;
         const city = document.getElementById('city').value;
 
-        // Проверка, что дата окончания не раньше даты начала
         if (new Date(end_date) < new Date(visit_date)) {
             alert("Дата окончания поездки не может быть раньше даты начала!");
             return;
@@ -232,15 +347,25 @@
             body: JSON.stringify({ country_id, visit_date, end_date, city })
         });
 
-        loadCountries();  // Обновляем список посещений
+        loadCountries();
+        $('#addTripModal').fadeOut(); // Закрываем модальное окно после добавления
+        document.getElementById('addCountryForm').reset(); // Сбрасываем форму
     });
 
-    loadCountryList();  // Загружаем список стран при загрузке страницы
-    loadCountries();    // Загружаем список посещений при загрузке страницы
+    async function deleteTrip(id) {
+        console.log(`Удаляем поездку с ID: ${id}`);
+        // Реализация функции удаления будет позже
+    }
+
+    loadCountryList();
+    loadCountries();
 </script>
 
 </body>
 </html>
+
+
+
 
 
 
